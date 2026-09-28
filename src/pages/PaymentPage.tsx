@@ -19,6 +19,7 @@ export const PaymentPage: React.FC = () => {
   const [slipUrl, setSlipUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
 
   const fetchOrderData = async (id: string) => {
     try {
@@ -47,6 +48,12 @@ export const PaymentPage: React.FC = () => {
       setLoading(false);
     }
   }, [orderId]);
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedAccount(label);
+    setTimeout(() => setCopiedAccount(null), 2500);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,15 +97,15 @@ export const PaymentPage: React.FC = () => {
 
   if (!orderId) {
     return (
-      <div className="container py-5 text-center">
-        <div className="bento-card p-5 max-w-md mx-auto my-5">
-          <i className="bi bi-wallet2 text-primary display-4 mb-3"></i>
+      <div className="container py-5 text-center my-5">
+        <div className="glass-card p-5 max-w-md mx-auto" style={{ maxWidth: '440px' }}>
+          <i className="bi bi-wallet2 text-info display-4 mb-3"></i>
           <h4 className="text-white fw-bold mb-2">Order မတွေ့ရှိပါ</h4>
           <p className="text-secondary small mb-4">
             ငွေပေးချေလိုသော Order ကို သင်၏ Order စာရင်းမှ ရွေးချယ်ပေးပါ။
           </p>
-          <Link to="/my-orders" className="btn btn-bento-primary">
-            ကျွန်ုပ်၏ Orders များသို့သွားရန်
+          <Link to="/my-orders" className="btn btn-tech-primary">
+            <i className="bi bi-bag-check me-2"></i> View My Orders
           </Link>
         </div>
       </div>
@@ -107,21 +114,26 @@ export const PaymentPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        <div className="spinner-border text-primary my-5" role="status"></div>
-        <p className="text-secondary">Order အချက်အလက်များ ဖတ်ရှုနေပါသည်...</p>
+      <div className="container py-5 text-center my-5">
+        <div
+          className="spinner-border text-info"
+          role="status"
+          style={{ width: '3rem', height: '3rem', borderWidth: '3px' }}
+        ></div>
+        <p className="text-secondary small mt-3">Loading order & payment details...</p>
       </div>
     );
   }
 
-  if (error && !order) {
+  if (!order) {
     return (
-      <div className="container py-5">
-        <div className="alert alert-danger bento-card border-danger text-center max-w-lg mx-auto p-4">
-          <i className="bi bi-exclamation-triangle-fill fs-2 mb-2 d-block"></i>
-          <h5 className="fw-bold">{error}</h5>
-          <Link to="/my-orders" className="btn btn-outline-light mt-3 btn-sm">
-            Orders စာရင်းသို့ ပြန်သွားရန်
+      <div className="container py-5 text-center my-5">
+        <div className="glass-card p-5 max-w-md mx-auto" style={{ maxWidth: '440px' }}>
+          <i className="bi bi-exclamation-octagon text-danger display-4 mb-3"></i>
+          <h4 className="text-white fw-bold mb-2">Order ရှာမတွေ့ပါ</h4>
+          <p className="text-secondary small mb-4">{error || 'Order ID မှားယွင်းနေပါသည်။'}</p>
+          <Link to="/my-orders" className="btn btn-tech-primary">
+            Back to Orders
           </Link>
         </div>
       </div>
@@ -129,356 +141,351 @@ export const PaymentPage: React.FC = () => {
   }
 
   return (
-    <div className="container py-4">
-      {/* Page Header */}
-      <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
-        <div>
-          <span className="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50 px-3 py-1 mb-2">
-            Secure Payment Gateway
-          </span>
-          <h2 className="text-white fw-bold mb-1">ငွေပေးချေခြင်း (Payment)</h2>
-          <p className="text-secondary small mb-0">
-            Order #{order?.id.substring(0, 8)} အတွက် ငွေလွှဲပြေစာနှင့် အချက်အလက်များ ပေးပို့ရန်
-          </p>
-        </div>
-        <Link to="/my-orders" className="btn btn-bento-outline btn-sm">
-          <i className="bi bi-arrow-left me-1"></i> My Orders
-        </Link>
-      </div>
-
-      {successMsg && (
-        <div className="alert alert-success bg-opacity-25 border-success text-white mb-4 d-flex align-items-center gap-3">
-          <i className="bi bi-check-circle-fill text-success fs-3"></i>
-          <div>
-            <div className="fw-bold">{successMsg}</div>
-            <div className="small text-white-50">
-              Admin ဘက်မှ ငွေလွှဲစစ်ဆေးအတည်ပြုပြီးသည်နှင့် Order အဆင့်မှာ CONFIRMED သို့ ပြောင်းလဲသွားပါမည်။
+    <div className="py-4 py-md-5 position-relative">
+      <div className="container">
+        {/* 3-Step Progress Indicator */}
+        <div className="d-flex align-items-center justify-content-center mb-5">
+          <div className="d-flex align-items-center gap-2 gap-sm-3">
+            <div className="d-flex align-items-center gap-2">
+              <span className="step-node completed">
+                <i className="bi bi-check2"></i>
+              </span>
+              <span className="small text-secondary fw-semibold d-none d-sm-inline">1. Cart</span>
+            </div>
+            <div className="step-line active"></div>
+            <div className="d-flex align-items-center gap-2">
+              <span className="step-node completed">
+                <i className="bi bi-check2"></i>
+              </span>
+              <span className="small text-secondary fw-semibold d-none d-sm-inline">2. Shipping</span>
+            </div>
+            <div className="step-line active"></div>
+            <div className="d-flex align-items-center gap-2">
+              <span className="step-node active">3</span>
+              <span className="small text-white fw-bold d-none d-sm-inline">3. Payment</span>
             </div>
           </div>
         </div>
-      )}
 
-      {error && (
-        <div className="alert alert-danger bg-opacity-25 border-danger text-danger mb-4">
-          <i className="bi bi-exclamation-circle me-2"></i>
-          {error}
-        </div>
-      )}
-
-      <div className="row g-4">
-        {/* Left Column: Order Summary & Payment Records */}
-        <div className="col-lg-5">
-          {/* Order Snapshot Card */}
-          <div className="bento-card p-4 mb-4">
-            <h5 className="text-white fw-bold mb-3 d-flex align-items-center gap-2">
-              <i className="bi bi-receipt text-primary"></i> Order Summary
-            </h5>
-
-            <div className="d-flex justify-content-between py-2 border-bottom border-dark border-opacity-25">
-              <span className="text-secondary small">Order ID</span>
-              <span className="text-white font-monospace small">{order?.id}</span>
-            </div>
-
-            <div className="d-flex justify-content-between py-2 border-bottom border-dark border-opacity-25">
-              <span className="text-secondary small">Order Status</span>
-              <span
-                className={`badge ${
-                  order?.status === 'CONFIRMED'
-                    ? 'bg-success'
-                    : order?.status === 'PENDING'
-                    ? 'bg-warning text-dark'
-                    : 'bg-info'
-                }`}
-              >
-                {order?.status}
-              </span>
-            </div>
-
-            <div className="d-flex justify-content-between py-2 border-bottom border-dark border-opacity-25">
-              <span className="text-secondary small">Shipping Address</span>
-              <span className="text-white-50 small text-end" style={{ maxWidth: '200px' }}>
-                {order?.shippingAddress}
-              </span>
-            </div>
-
-            <div className="d-flex justify-content-between py-2 border-bottom border-dark border-opacity-25">
-              <span className="text-secondary small">Order Items</span>
-              <span className="text-white small">
-                {order?.items?.length || 0} items
-              </span>
-            </div>
-
-            <div className="d-flex justify-content-between align-items-center pt-3">
-              <span className="text-white fw-bold">စုစုပေါင်း ပေးချေရန်</span>
-              <span className="price-tag fs-4 fw-bold">
-                {order?.totalAmount.toLocaleString()} MMK
-              </span>
-            </div>
-          </div>
-
-          {/* Existing Payment Attempts Bento Card */}
-          <div className="bento-card p-4">
-            <h5 className="text-white fw-bold mb-3 d-flex align-items-center gap-2">
-              <i className="bi bi-clock-history text-cyan"></i> ငွေလွှဲမှတ်တမ်းများ (Payments)
-            </h5>
-
-            {existingPayments.length === 0 ? (
+        {/* Order Details Banner */}
+        <div className="glass-card p-4 mb-4">
+          <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <span className="badge-tech small">ORDER ID: {order.id.substring(0, 8)}...</span>
+                <span className="badge bg-primary bg-opacity-25 text-info border border-info border-opacity-50 small">
+                  {order.status}
+                </span>
+                {hasVerifiedPayment && (
+                  <span className="badge-emerald small">
+                    <i className="bi bi-check2-circle me-1"></i> Payment Verified
+                  </span>
+                )}
+              </div>
+              <h4 className="text-white fw-bold mb-1">ငွေပေးချေမှု အတည်ပြုခြင်း</h4>
               <p className="text-secondary small mb-0">
-                ဤ Order အတွက် ငွေလွှဲမှတ်တမ်း မရှိသေးပါ။ ညာဘက်တွင် ငွေပေးချေမှု တင်သွင်းနိုင်ပါသည်။
+                Shipping Address: <span className="text-white">{order.shippingAddress}</span>
               </p>
-            ) : (
-              <div className="d-flex flex-column gap-3">
-                {existingPayments.map((p) => (
-                  <div
-                    key={p.id}
-                    className="p-3 rounded-3"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                      <span className="badge bg-secondary">{p.provider}</span>
-                      <span
-                        className={`badge ${
-                          p.status === 'VERIFIED'
-                            ? 'bg-success'
-                            : p.status === 'REJECTED'
-                            ? 'bg-danger'
-                            : 'bg-warning text-dark'
-                        }`}
-                      >
-                        {p.status}
-                      </span>
-                    </div>
-                    <div className="text-white small fw-bold mt-1">
-                      {p.amount.toLocaleString()} MMK
-                    </div>
-                    <div className="text-secondary small font-monospace">
-                      Txn: {p.transactionId || 'N/A'}
-                    </div>
-                    {p.paymentSlipUrl && (
-                      <a
-                        href={p.paymentSlipUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-cyan small d-inline-block mt-1"
-                      >
-                        <i className="bi bi-image me-1"></i> View Slip Image
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            </div>
+            <div className="text-md-end">
+              <span className="text-secondary small d-block" style={{ fontSize: '11px', letterSpacing: '0.05em' }}>
+                PAYABLE AMOUNT
+              </span>
+              <span className="display-6 fs-3 fw-black gradient-text-cyan">
+                {order.totalAmount.toLocaleString()} MMK
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Payment Form */}
-        <div className="col-lg-7">
-          <div className="bento-card p-4">
-            <h5 className="text-white fw-bold mb-3">ငွေပေးချေနည်းလမ်း ရွေးချယ်ရန်</h5>
+        {/* Feedback Notifications */}
+        {successMsg && (
+          <div className="glass-card border-success p-3 mb-4 d-flex align-items-center gap-2" style={{ background: 'rgba(16, 185, 129, 0.15)' }}>
+            <i className="bi bi-check-circle-fill text-success fs-5"></i>
+            <span className="text-white small fw-semibold">{successMsg}</span>
+          </div>
+        )}
 
-            {hasVerifiedPayment ? (
-              <div className="alert alert-success bg-opacity-25 border-success text-white p-4 text-center">
-                <i className="bi bi-check2-circle fs-1 text-success mb-2 d-block"></i>
-                <h5 className="fw-bold mb-2">ငွေပေးချေမှု အောင်မြင်ပြီးဖြစ်ပါသည်!</h5>
-                <p className="small text-white-50 mb-3">
-                  ဤ Order အတွက် ငွေလွှဲစစ်ဆေးအတည်ပြုခြင်း (VERIFIED) ပြီးမြောက်ပါပြီ။ ထပ်မံပေးချေရန် မလိုအပ်တော့ပါ။
-                </p>
-                <Link to="/my-orders" className="btn btn-bento-primary">
-                  Order အခြေအနေ ကြည့်ရန်
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                {/* Payment Provider Selection Grid */}
-                <div className="row g-3 mb-4">
-                  {/* KBZPay */}
-                  <div className="col-sm-6">
-                    <div
-                      onClick={() => setProvider('KPAY')}
-                      className={`p-3 rounded-3 cursor-pointer h-100 transition-all ${
-                        provider === 'KPAY'
-                          ? 'border border-primary'
-                          : 'border border-dark border-opacity-50'
-                      }`}
-                      style={{
-                        background:
-                          provider === 'KPAY'
-                            ? 'rgba(79, 70, 229, 0.15)'
-                            : 'rgba(255, 255, 255, 0.02)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div className="d-flex align-items-center justify-content-between mb-2">
-                        <span className="fw-bold text-white">KBZPay (KPay)</span>
-                        {provider === 'KPAY' && (
-                          <i className="bi bi-check-circle-fill text-primary"></i>
-                        )}
-                      </div>
-                      <div className="text-white-50 small mb-1">ဖုန်းနံပါတ်: 09-952001122</div>
-                      <div className="text-secondary small">အမည်: Phone Shop Official</div>
-                    </div>
-                  </div>
+        {error && (
+          <div className="glass-card border-danger text-danger p-3 mb-4 d-flex align-items-center gap-2">
+            <i className="bi bi-exclamation-circle-fill fs-5"></i>
+            <span className="small">{error}</span>
+          </div>
+        )}
 
-                  {/* WavePay */}
-                  <div className="col-sm-6">
-                    <div
-                      onClick={() => setProvider('WAVEPAY')}
-                      className={`p-3 rounded-3 cursor-pointer h-100 transition-all ${
-                        provider === 'WAVEPAY'
-                          ? 'border border-warning'
-                          : 'border border-dark border-opacity-50'
-                      }`}
-                      style={{
-                        background:
-                          provider === 'WAVEPAY'
-                            ? 'rgba(234, 179, 8, 0.15)'
-                            : 'rgba(255, 255, 255, 0.02)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div className="d-flex align-items-center justify-content-between mb-2">
-                        <span className="fw-bold text-white">WavePay</span>
-                        {provider === 'WAVEPAY' && (
-                          <i className="bi bi-check-circle-fill text-warning"></i>
-                        )}
-                      </div>
-                      <div className="text-white-50 small mb-1">ဖုန်းနံပါတ်: 09-792003344</div>
-                      <div className="text-secondary small">အမည်: Phone Shop Waves</div>
-                    </div>
-                  </div>
+        <div className="row g-4">
+          {/* Left: Payment Form & Account Details */}
+          <div className="col-12 col-lg-7">
+            <div className="glass-card p-4 p-md-5">
+              <h5 className="text-white fw-bold mb-4 pb-2 border-bottom border-secondary border-opacity-25">
+                1. Select Payment Method
+              </h5>
 
-                  {/* Bank Transfer */}
-                  <div className="col-sm-6">
-                    <div
-                      onClick={() => setProvider('BANK_TRANSFER')}
-                      className={`p-3 rounded-3 cursor-pointer h-100 transition-all ${
-                        provider === 'BANK_TRANSFER'
-                          ? 'border border-info'
-                          : 'border border-dark border-opacity-50'
-                      }`}
-                      style={{
-                        background:
-                          provider === 'BANK_TRANSFER'
-                            ? 'rgba(6, 182, 212, 0.15)'
-                            : 'rgba(255, 255, 255, 0.02)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div className="d-flex align-items-center justify-content-between mb-2">
-                        <span className="fw-bold text-white">Bank Transfer</span>
-                        {provider === 'BANK_TRANSFER' && (
-                          <i className="bi bi-check-circle-fill text-info"></i>
-                        )}
-                      </div>
-                      <div className="text-white-50 small mb-1">KBZ Bank: 0123 4567 8901</div>
-                      <div className="text-secondary small">CB Bank: 0098 7654 3210</div>
-                    </div>
-                  </div>
-
-                  {/* Cash On Delivery */}
-                  <div className="col-sm-6">
-                    <div
-                      onClick={() => setProvider('COD')}
-                      className={`p-3 rounded-3 cursor-pointer h-100 transition-all ${
-                        provider === 'COD'
-                          ? 'border border-success'
-                          : 'border border-dark border-opacity-50'
-                      }`}
-                      style={{
-                        background:
-                          provider === 'COD'
-                            ? 'rgba(16, 185, 129, 0.15)'
-                            : 'rgba(255, 255, 255, 0.02)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div className="d-flex align-items-center justify-content-between mb-2">
-                        <span className="fw-bold text-white">Cash on Delivery</span>
-                        {provider === 'COD' && (
-                          <i className="bi bi-check-circle-fill text-success"></i>
-                        )}
-                      </div>
-                      <div className="text-white-50 small mb-1">ပစ္စည်းရောက်မှ ငွေချေရန်</div>
-                      <div className="text-secondary small">ရန်ကုန်/မန္တလေး မြို့တွင်း</div>
-                    </div>
+              {/* Provider Options */}
+              <div className="row g-3 mb-4">
+                {/* KBZPay */}
+                <div className="col-6 col-sm-3">
+                  <div
+                    onClick={() => setProvider('KPAY')}
+                    className={`p-3 rounded-3 text-center cursor-pointer transition-all ${
+                      provider === 'KPAY'
+                        ? 'border border-primary'
+                        : 'border border-secondary border-opacity-25'
+                    }`}
+                    style={{
+                      background: provider === 'KPAY' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <i className="bi bi-qr-code text-primary fs-3 d-block mb-1"></i>
+                    <strong className="text-white small d-block">KBZPay</strong>
+                    <span className="text-secondary" style={{ fontSize: '10px' }}>Instant QR</span>
                   </div>
                 </div>
 
-                {/* Form fields based on selected method */}
-                {provider !== 'COD' && (
-                  <div className="space-y-3 mb-4">
+                {/* WavePay */}
+                <div className="col-6 col-sm-3">
+                  <div
+                    onClick={() => setProvider('WAVEPAY')}
+                    className={`p-3 rounded-3 text-center cursor-pointer transition-all ${
+                      provider === 'WAVEPAY'
+                        ? 'border border-warning'
+                        : 'border border-secondary border-opacity-25'
+                    }`}
+                    style={{
+                      background: provider === 'WAVEPAY' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <i className="bi bi-wallet2 text-warning fs-3 d-block mb-1"></i>
+                    <strong className="text-white small d-block">WavePay</strong>
+                    <span className="text-secondary" style={{ fontSize: '10px' }}>QR / Transfer</span>
+                  </div>
+                </div>
+
+                {/* Bank Transfer */}
+                <div className="col-6 col-sm-3">
+                  <div
+                    onClick={() => setProvider('BANK_TRANSFER')}
+                    className={`p-3 rounded-3 text-center cursor-pointer transition-all ${
+                      provider === 'BANK_TRANSFER'
+                        ? 'border border-info'
+                        : 'border border-secondary border-opacity-25'
+                    }`}
+                    style={{
+                      background: provider === 'BANK_TRANSFER' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <i className="bi bi-bank text-info fs-3 d-block mb-1"></i>
+                    <strong className="text-white small d-block">Bank</strong>
+                    <span className="text-secondary" style={{ fontSize: '10px' }}>CB / KBZ Bank</span>
+                  </div>
+                </div>
+
+                {/* COD */}
+                <div className="col-6 col-sm-3">
+                  <div
+                    onClick={() => setProvider('COD')}
+                    className={`p-3 rounded-3 text-center cursor-pointer transition-all ${
+                      provider === 'COD'
+                        ? 'border border-success'
+                        : 'border border-secondary border-opacity-25'
+                    }`}
+                    style={{
+                      background: provider === 'COD' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <i className="bi bi-cash-stack text-success fs-3 d-block mb-1"></i>
+                    <strong className="text-white small d-block">COD</strong>
+                    <span className="text-secondary" style={{ fontSize: '10px' }}>Cash On Delivery</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Information Card */}
+              {provider !== 'COD' && (
+                <div
+                  className="p-4 rounded-4 mb-4"
+                  style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-glass)' }}
+                >
+                  <h6 className="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i className="bi bi-info-circle text-info"></i>
+                    <span>
+                      {provider === 'KPAY' && 'KBZPay Account Details'}
+                      {provider === 'WAVEPAY' && 'WavePay Account Details'}
+                      {provider === 'BANK_TRANSFER' && 'Bank Transfer Details'}
+                    </span>
+                  </h6>
+
+                  <div className="row g-3">
+                    <div className="col-12 col-sm-7">
+                      <div className="mb-2">
+                        <span className="text-secondary small d-block" style={{ fontSize: '11px' }}>Account Name:</span>
+                        <strong className="text-white">Aung Myo Oo (Phone Store)</strong>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-secondary small d-block" style={{ fontSize: '11px' }}>Account Number / Phone:</span>
+                        <div className="d-flex align-items-center gap-2 mt-1">
+                          <code className="text-info fs-6 px-2 py-1 rounded bg-dark border border-secondary border-opacity-50">
+                            {provider === 'KPAY' && '09420011223'}
+                            {provider === 'WAVEPAY' && '09420011223'}
+                            {provider === 'BANK_TRANSFER' && '204-101-0099887766'}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleCopy(
+                                provider === 'BANK_TRANSFER' ? '204-101-0099887766' : '09420011223',
+                                'account'
+                              )
+                            }
+                            className="btn btn-sm btn-tech-secondary px-2"
+                            title="Copy number"
+                          >
+                            <i className="bi bi-clipboard"></i>{' '}
+                            {copiedAccount === 'account' ? 'Copied!' : 'Copy'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-12 col-sm-5 text-center">
+                      <div
+                        className="p-2 rounded-3 bg-white d-inline-block shadow-sm"
+                        style={{ maxWidth: '120px' }}
+                      >
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+                            provider === 'KPAY'
+                              ? 'kpay:09420011223'
+                              : provider === 'WAVEPAY'
+                              ? 'wave:09420011223'
+                              : 'bank:2041010099887766'
+                          )}`}
+                          alt="QR Code"
+                          className="img-fluid rounded"
+                        />
+                      </div>
+                      <span className="d-block text-secondary small mt-1" style={{ fontSize: '10px' }}>
+                        Scan QR Code to Pay
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Form Input for Verification */}
+              <form onSubmit={handleSubmit}>
+                {provider !== 'COD' ? (
+                  <>
                     <div className="mb-3">
-                      <label className="form-label text-white small fw-bold">
-                        Transaction ID (ငွေလွှဲ အမှတ်အသား) <span className="text-danger">*</span>
+                      <label className="text-white small fw-bold mb-1">
+                        Transaction ID / လွှဲပြေစာနံပါတ် <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
-                        className="form-control bento-input"
-                        placeholder="ဥပမာ- 2026032488921"
+                        className="form-control form-tech"
+                        placeholder="ဥပမာ - 0123456789 (သို့မဟုတ် နောက်ဆုံးဂဏန်း ၆ လုံး)"
                         value={transactionId}
                         onChange={(e) => setTransactionId(e.target.value)}
                         required
                       />
-                      <div className="form-text text-secondary small">
-                        KPay / WavePay တွင် ပြသသော Transaction No သို့မဟုတ် နောက်ဆုံး ဂဏန်း ၆ လုံး ထည့်သွင်းပေးပါ။
-                      </div>
                     </div>
 
-                    <div className="mb-3">
-                      <label className="form-label text-white small fw-bold">
-                        Payment Slip URL (ငွေလွှဲပြေစာ ဓာတ်ပုံ Link)
+                    <div className="mb-4">
+                      <label className="text-secondary small fw-semibold mb-1">
+                        Payment Slip Image URL (ငွေလွှဲပြေစာ ပုံလင့်ခ် - Optional)
                       </label>
-                      <div className="input-group">
-                        <input
-                          type="url"
-                          className="form-control bento-input"
-                          placeholder="https://example.com/slip.jpg"
-                          value={slipUrl}
-                          onChange={(e) => setSlipUrl(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-outline-secondary btn-sm"
-                          onClick={() =>
-                            setSlipUrl(
-                              'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80'
-                            )
-                          }
-                        >
-                          Use Demo Slip
-                        </button>
-                      </div>
+                      <input
+                        type="url"
+                        className="form-control form-tech"
+                        placeholder="https://example.com/slip.jpg"
+                        value={slipUrl}
+                        onChange={(e) => setSlipUrl(e.target.value)}
+                      />
                     </div>
-                  </div>
-                )}
-
-                {provider === 'COD' && (
-                  <div className="alert alert-info bg-opacity-10 border-info text-info small mb-4">
-                    <i className="bi bi-info-circle-fill me-2"></i>
-                    Cash on Delivery ကို ရွေးချယ်ထားပါသည်။ ပို့ဆောင်သူထံသို့ ပစ္စည်းလက်ခံရရှိချိန်တွင် ငွေကျပ်{' '}
-                    <strong>{order?.totalAmount.toLocaleString()} MMK</strong> ပေးချေပေးရပါမည်။
+                  </>
+                ) : (
+                  <div className="p-3 rounded-3 mb-4 bg-success bg-opacity-10 border border-success border-opacity-25 small text-secondary">
+                    <i className="bi bi-check2-circle text-success me-1"></i>
+                    ပစ္စည်းရောက်မှ ငွေချေစနစ်ကို ရွေးချယ်ထားပါသည်။ ပို့ဆောင်သူထံသို့ ငွေသားပေးချေနိုင်ပါသည်။
                   </div>
                 )}
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn btn-bento-primary w-100 py-3 fw-bold"
+                  className="btn btn-tech-primary w-100 py-3 fw-bold fs-6 d-flex align-items-center justify-content-center gap-2"
                 >
                   {submitting ? (
                     <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                      ငွေလွှဲအချက်အလက် ပေးပို့နေပါသည်...
+                      <div className="spinner-border spinner-border-sm" role="status"></div>
+                      <span>Submitting Payment...</span>
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-shield-check me-2"></i>
-                      ငွေပေးချေမှု အတည်ပြုပေးပို့မည်
+                      <i className="bi bi-shield-check fs-5"></i>
+                      <span>Submit Payment Proof for Verification</span>
                     </>
                   )}
                 </button>
               </form>
-            )}
+            </div>
+          </div>
+
+          {/* Right: Payment Submissions History */}
+          <div className="col-12 col-lg-5">
+            <div className="glass-card p-4">
+              <h5 className="text-white fw-bold mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                Payment History
+              </h5>
+
+              {existingPayments.length === 0 ? (
+                <div className="text-center py-4 text-secondary small">
+                  <i className="bi bi-receipt fs-2 d-block mb-2 text-secondary opacity-50"></i>
+                  ငွေပေးချေမှု အချက်အလက် မတင်သွင်းရသေးပါ။
+                </div>
+              ) : (
+                <div className="d-flex flex-column gap-3">
+                  {existingPayments.map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-3 rounded-3"
+                      style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-glass)' }}
+                    >
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="badge badge-tech small">{p.provider}</span>
+                        <span
+                          className={`badge ${
+                            p.status === 'VERIFIED'
+                              ? 'bg-success'
+                              : p.status === 'REJECTED'
+                              ? 'bg-danger'
+                              : 'bg-warning text-dark'
+                          } small`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                      <div className="small text-secondary mb-1">
+                        Txn ID: <strong className="text-white">{p.transactionId || 'N/A'}</strong>
+                      </div>
+                      <div className="small text-secondary">
+                        Submitted: {new Date(p.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="pt-4 mt-3 border-top border-secondary border-opacity-25">
+                <Link to="/my-orders" className="btn btn-tech-secondary w-100 py-2 small">
+                  <i className="bi bi-arrow-left me-1"></i> Go to My Orders
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

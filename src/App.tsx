@@ -22,7 +22,7 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <div className="d-flex flex-column min-vh-100 bg-dark text-light">
+          <div className="d-flex flex-column min-vh-100 text-light position-relative" style={{ zIndex: 1 }}>
             <Navbar />
             <main className="flex-grow-1">
               <Routes>
